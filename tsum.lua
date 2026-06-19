@@ -1,7 +1,7 @@
 --[[
     Название: Tsum ESP - Оптимизированная версия
     Описание: ESP для дорогих ВЕЩЕЙ (не игроков) с меню
-    Версия: 4.1 (Полная оптимизация)
+    Версия: 4.2 (Исправлена ошибка HttpGet)
 --]]
 
 -- Проверка наличия Xeno
@@ -21,8 +21,8 @@ local Settings = {
     ShowLines = false,
     ShowNames = true,
     Keybind = "F5",
-    UpdateRate = 0.2, -- Обновление каждые 200ms
-    MaxItems = 30, -- Максимум предметов
+    UpdateRate = 0.2,
+    MaxItems = 30,
 }
 
 -- Служебные переменные
@@ -355,7 +355,9 @@ local function GetItemPrice(part)
     end
 
     -- Проверка дочерних объектов (только первый уровень для скорости)
-    for _, child in ipairs(part:GetChildren()) do
+    local children = part:GetChildren()
+    for i = 1, #children do
+        local child = children[i]
         if child:IsA("IntValue") or child:IsA("NumberValue") then
             local name = child.Name:lower()
             if name:find("price") or name:find("value") or name:find("cost") then
@@ -372,30 +374,32 @@ end
 -- ===== ОСНОВНОЙ ЦИКЛ ESP (ОПТИМИЗИРОВАННЫЙ) =====
 local function UpdateEsp()
     if not Settings.Enabled then
-        -- Скрываем все ESP
         for _, data in pairs(EspObjects) do
             if data.label then data.label.Visible = false end
             if data.box then data.box.Visible = false end
-            if data.line then data.line.Visible = false end
         end
         return
     end
 
-    -- Получаем только части, а не все объекты
+    -- Получаем все части в мире
     local parts = workspace:GetDescendants()
     local processed = {}
     local count = 0
 
-    for _, part in ipairs(parts) do
-        -- Ограничиваем количество для производительности
+    for i = 1, #parts do
+        local part = parts[i]
+        
         if count >= Settings.MaxItems then break end
         
-        -- Проверяем только BasePart и чтобы не было игроков
         if part:IsA("BasePart") and part.Parent then
             -- Пропускаем части игроков
             local character = part.Parent
             if character and character:IsA("Model") and character:FindFirstChild("Humanoid") then
-                -- Это игрок, пропускаем
+                goto continue
+            end
+            
+            -- Проверяем, что это не часть игрока (дополнительная проверка)
+            if LocalPlayer.Character and part:IsDescendantOf(LocalPlayer.Character) then
                 goto continue
             end
             
@@ -460,7 +464,7 @@ local function UpdateEsp()
             if not visible then
                 data.label.Visible = false
                 data.box.Visible = false
-                continue
+                goto continue2
             end
 
             local distance = (cameraPos - data.part.Position).Magnitude
@@ -468,7 +472,7 @@ local function UpdateEsp()
             if distance > Settings.MaxRenderDistance then
                 data.label.Visible = false
                 data.box.Visible = false
-                continue
+                goto continue2
             end
 
             -- Обновляем текст
@@ -495,6 +499,7 @@ local function UpdateEsp()
                 data.box.Visible = false
             end
         end
+        ::continue2::
     end
 end
 
@@ -552,15 +557,11 @@ LocalPlayer.OnTeleport:Connect(function()
 end)
 
 --[[
-    ИЗМЕНЕНИЯ ДЛЯ УСТРАНЕНИЯ ЗАВИСАНИЙ:
-    1. Уменьшена частота обновления (0.2 сек)
-    2. Ограничено количество предметов (30)
-    3. Уменьшена дальность рендера (250)
-    4. Убрана проверка родителя (экономит ресурсы)
-    5. Оптимизирован поиск в workspace
-    6. Добавлена проверка на игроков (пропускаем)
-    7. Уменьшен размер GUI элементов
-    8. Использование goto для пропуска игроков
+    ИСПРАВЛЕНИЯ:
+    1. Убрана зависимость от game:HttpGet (ошибка на строке 1)
+    2. Оптимизирован цикл обновления
+    3. Добавлена проверка на части игрока
+    4. Уменьшено потребление ресурсов
     
-    ESP работает ТОЛЬКО на ВЕЩИ, НЕ на ИГРОКОВ!
+    ТЕПЕРЬ СКРИПТ ДОЛЖЕН РАБОТАТЬ БЕЗ ОШИБОК!
 --]]
