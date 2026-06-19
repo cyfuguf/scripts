@@ -1,14 +1,10 @@
 --[[
-    Название: Tsum ESP - Оптимизированная версия
-    Описание: ESP для дорогих ВЕЩЕЙ (не игроков) с меню
-    Версия: 4.2 (Исправлена ошибка HttpGet)
---]]
+    Tsum ESP - Рабочая версия
+    ESP для дорогих ВЕЩЕЙ
+    Нажми F5 для открытия меню
+]]
 
--- Проверка наличия Xeno
-local Xeno = syn and syn.xeno or (getgenv and getgenv().Xeno)
-local IsXeno = Xeno ~= nil
-
--- НАСТРОЙКИ ПО УМОЛЧАНИЮ
+-- НАСТРОЙКИ
 local Settings = {
     Enabled = true,
     PriceThreshold = 500,
@@ -16,9 +12,8 @@ local Settings = {
     TextColor = Color3.fromRGB(255, 255, 255),
     FontSize = 16,
     ShowDistance = true,
-    MaxRenderDistance = 250,
+    MaxRenderDistance = 300,
     ShowBoxes = true,
-    ShowLines = false,
     ShowNames = true,
     Keybind = "F5",
     UpdateRate = 0.2,
@@ -33,28 +28,23 @@ local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
--- Хранилище ESP
 local EspObjects = {}
 local Connection = nil
 local MenuOpen = false
 local UpdateTimer = 0
 local EspGui = nil
 
--- ===== ОПТИМИЗИРОВАННОЕ МЕНЮ =====
+-- СОЗДАНИЕ МЕНЮ
 local function CreateMenu()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "TsumMenu"
     screenGui.Parent = LocalPlayer.PlayerGui
     screenGui.ResetOnSpawn = false
     screenGui.IgnoreGuiInset = true
-    if IsXeno then
-        screenGui.DisplayOrder = 999
-    end
 
     local mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 350, 0, 400)
-    mainFrame.Position = UDim2.new(0.5, -175, 0.5, -200)
+    mainFrame.Size = UDim2.new(0, 350, 0, 380)
+    mainFrame.Position = UDim2.new(0.5, -175, 0.5, -190)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     mainFrame.BackgroundTransparency = 0.05
     mainFrame.BorderSizePixel = 1
@@ -70,9 +60,7 @@ local function CreateMenu()
     -- Заголовок
     local title = Instance.new("Frame")
     title.Size = UDim2.new(1, 0, 0, 40)
-    title.Position = UDim2.new(0, 0, 0, 0)
     title.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-    title.BackgroundTransparency = 0
     title.BorderSizePixel = 0
     title.Parent = mainFrame
 
@@ -96,7 +84,6 @@ local function CreateMenu()
     closeBtn.Size = UDim2.new(0, 28, 0, 28)
     closeBtn.Position = UDim2.new(1, -34, 0, 6)
     closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
-    closeBtn.BackgroundTransparency = 0
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.TextSize = 16
@@ -113,14 +100,6 @@ local function CreateMenu()
         MenuOpen = false
     end)
 
-    closeBtn.MouseEnter:Connect(function()
-        closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    end)
-
-    closeBtn.MouseLeave:Connect(function()
-        closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
-    end)
-
     -- Контейнер
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, -20, 1, -50)
@@ -130,7 +109,6 @@ local function CreateMenu()
 
     local scroll = Instance.new("ScrollingFrame")
     scroll.Size = UDim2.new(1, 0, 1, 0)
-    scroll.Position = UDim2.new(0, 0, 0, 0)
     scroll.BackgroundTransparency = 1
     scroll.BorderSizePixel = 0
     scroll.ScrollBarThickness = 3
@@ -142,17 +120,57 @@ local function CreateMenu()
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Parent = scroll
 
-    -- Функции создания элементов
+    -- Создание элементов меню
+    local function CreateToggle(parent, name, default, callback)
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 0, 32)
+        frame.BackgroundTransparency = 1
+        frame.Parent = parent
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(0.7, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = name
+        label.TextColor3 = Color3.fromRGB(220, 220, 230)
+        label.TextSize = 14
+        label.Font = Enum.Font.Gotham
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = frame
+
+        local toggle = Instance.new("TextButton")
+        toggle.Size = UDim2.new(0, 45, 0, 24)
+        toggle.Position = UDim2.new(1, -45, 0.5, -12)
+        toggle.BackgroundColor3 = default and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(50, 50, 65)
+        toggle.Text = default and "ON" or "OFF"
+        toggle.TextColor3 = default and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(200, 200, 200)
+        toggle.TextSize = 12
+        toggle.Font = Enum.Font.GothamBold
+        toggle.BorderSizePixel = 0
+        toggle.Parent = frame
+
+        local toggleCorner = Instance.new("UICorner")
+        toggleCorner.CornerRadius = UDim.new(0, 5)
+        toggleCorner.Parent = toggle
+
+        local state = default
+        toggle.MouseButton1Click:Connect(function()
+            state = not state
+            toggle.BackgroundColor3 = state and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(50, 50, 65)
+            toggle.Text = state and "ON" or "OFF"
+            toggle.TextColor3 = state and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(200, 200, 200)
+            callback(state)
+        end)
+        return frame
+    end
+
     local function CreateSlider(parent, name, min, max, default, callback)
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(1, 0, 0, 45)
         frame.BackgroundTransparency = 1
         frame.Parent = parent
-        frame.LayoutOrder = #parent:GetChildren() + 1
 
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(0.6, 0, 0, 18)
-        label.Position = UDim2.new(0, 0, 0, 0)
         label.BackgroundTransparency = 1
         label.Text = name
         label.TextColor3 = Color3.fromRGB(220, 220, 230)
@@ -194,7 +212,6 @@ local function CreateMenu()
         fillCorner.Parent = fill
 
         local dragging = false
-
         local function updateSlider(input)
             local pos = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
             local value = math.round(min + (max - min) * pos)
@@ -221,85 +238,20 @@ local function CreateMenu()
                 updateSlider(input)
             end
         end)
-
         return frame
     end
 
-    local function CreateToggle(parent, name, default, callback)
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, 0, 0, 32)
-        frame.BackgroundTransparency = 1
-        frame.Parent = parent
-        frame.LayoutOrder = #parent:GetChildren() + 1
-
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(0.7, 0, 1, 0)
-        label.Position = UDim2.new(0, 0, 0, 0)
-        label.BackgroundTransparency = 1
-        label.Text = name
-        label.TextColor3 = Color3.fromRGB(220, 220, 230)
-        label.TextSize = 14
-        label.Font = Enum.Font.Gotham
-        label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = frame
-
-        local toggle = Instance.new("TextButton")
-        toggle.Size = UDim2.new(0, 45, 0, 24)
-        toggle.Position = UDim2.new(1, -45, 0.5, -12)
-        toggle.BackgroundColor3 = default and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(50, 50, 65)
-        toggle.Text = default and "ON" or "OFF"
-        toggle.TextColor3 = default and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(200, 200, 200)
-        toggle.TextSize = 12
-        toggle.Font = Enum.Font.GothamBold
-        toggle.BorderSizePixel = 0
-        toggle.Parent = frame
-
-        local toggleCorner = Instance.new("UICorner")
-        toggleCorner.CornerRadius = UDim.new(0, 5)
-        toggleCorner.Parent = toggle
-
-        local state = default
-
-        toggle.MouseButton1Click:Connect(function()
-            state = not state
-            toggle.BackgroundColor3 = state and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(50, 50, 65)
-            toggle.Text = state and "ON" or "OFF"
-            toggle.TextColor3 = state and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(200, 200, 200)
-            callback(state)
-        end)
-
-        return frame
-    end
-
-    -- Элементы меню
-    CreateToggle(scroll, "ESP Enabled", Settings.Enabled, function(val)
-        Settings.Enabled = val
-    end)
-
-    CreateSlider(scroll, "Price Threshold", 50, 5000, Settings.PriceThreshold, function(val)
-        Settings.PriceThreshold = val
-    end)
-
-    CreateToggle(scroll, "Show Boxes", Settings.ShowBoxes, function(val)
-        Settings.ShowBoxes = val
-    end)
-
-    CreateToggle(scroll, "Show Names", Settings.ShowNames, function(val)
-        Settings.ShowNames = val
-    end)
-
-    CreateToggle(scroll, "Show Distance", Settings.ShowDistance, function(val)
-        Settings.ShowDistance = val
-    end)
-
-    CreateSlider(scroll, "Max Distance", 50, 500, Settings.MaxRenderDistance, function(val)
-        Settings.MaxRenderDistance = val
-    end)
+    -- Добавляем элементы
+    CreateToggle(scroll, "ESP Enabled", Settings.Enabled, function(v) Settings.Enabled = v end)
+    CreateSlider(scroll, "Price Threshold", 50, 5000, Settings.PriceThreshold, function(v) Settings.PriceThreshold = v end)
+    CreateToggle(scroll, "Show Boxes", Settings.ShowBoxes, function(v) Settings.ShowBoxes = v end)
+    CreateToggle(scroll, "Show Names", Settings.ShowNames, function(v) Settings.ShowNames = v end)
+    CreateToggle(scroll, "Show Distance", Settings.ShowDistance, function(v) Settings.ShowDistance = v end)
+    CreateSlider(scroll, "Max Distance", 50, 500, Settings.MaxRenderDistance, function(v) Settings.MaxRenderDistance = v end)
 
     -- Перетаскивание
     local dragging = false
-    local dragStart
-    local startPos
+    local dragStart, startPos
 
     title.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -318,12 +270,7 @@ local function CreateMenu()
     title.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
-            mainFrame.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
+            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 
@@ -333,31 +280,21 @@ end
 -- СОЗДАНИЕ ESP GUI
 local function CreateEspGui()
     if EspGui then return EspGui end
-
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "TsumESP"
     screenGui.Parent = LocalPlayer.PlayerGui
     screenGui.ResetOnSpawn = false
     screenGui.IgnoreGuiInset = true
-    if IsXeno then
-        screenGui.DisplayOrder = 998
-    end
     EspGui = screenGui
     return screenGui
 end
 
--- ===== ОПТИМИЗИРОВАННАЯ ФУНКЦИЯ ПОИСКА ЦЕНЫ =====
+-- ПОИСК ЦЕНЫ
 local function GetItemPrice(part)
-    -- Быстрая проверка атрибутов
     local price = part:GetAttribute("Value") or part:GetAttribute("Price") or part:GetAttribute("Cost") or 0
-    if type(price) == "number" and price > 0 then 
-        return price 
-    end
+    if type(price) == "number" and price > 0 then return price end
 
-    -- Проверка дочерних объектов (только первый уровень для скорости)
-    local children = part:GetChildren()
-    for i = 1, #children do
-        local child = children[i]
+    for _, child in ipairs(part:GetChildren()) do
         if child:IsA("IntValue") or child:IsA("NumberValue") then
             local name = child.Name:lower()
             if name:find("price") or name:find("value") or name:find("cost") then
@@ -367,11 +304,10 @@ local function GetItemPrice(part)
             end
         end
     end
-
     return 0
 end
 
--- ===== ОСНОВНОЙ ЦИКЛ ESP (ОПТИМИЗИРОВАННЫЙ) =====
+-- ОСНОВНОЙ ЦИКЛ
 local function UpdateEsp()
     if not Settings.Enabled then
         for _, data in pairs(EspObjects) do
@@ -381,73 +317,62 @@ local function UpdateEsp()
         return
     end
 
-    -- Получаем все части в мире
     local parts = workspace:GetDescendants()
     local processed = {}
     local count = 0
 
-    for i = 1, #parts do
-        local part = parts[i]
-        
+    for _, part in ipairs(parts) do
         if count >= Settings.MaxItems then break end
-        
-        if part:IsA("BasePart") and part.Parent then
-            -- Пропускаем части игроков
-            local character = part.Parent
-            if character and character:IsA("Model") and character:FindFirstChild("Humanoid") then
-                goto continue
-            end
-            
-            -- Проверяем, что это не часть игрока (дополнительная проверка)
-            if LocalPlayer.Character and part:IsDescendantOf(LocalPlayer.Character) then
-                goto continue
-            end
-            
-            local price = GetItemPrice(part)
-            if price >= Settings.PriceThreshold then
-                count = count + 1
-                local key = part
+        if not part:IsA("BasePart") or not part.Parent then goto continue end
 
-                if not EspObjects[key] then
-                    local label = Instance.new("TextLabel")
-                    label.Size = UDim2.new(0, 200, 0, 30)
-                    label.BackgroundTransparency = 1
-                    label.Text = "💰 " .. tostring(price)
-                    label.TextColor3 = Settings.TextColor
-                    label.TextSize = Settings.FontSize
-                    label.Font = Enum.Font.GothamBold
-                    label.TextStrokeTransparency = 0.2
-                    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-                    label.TextXAlignment = Enum.TextXAlignment.Center
-                    label.TextYAlignment = Enum.TextYAlignment.Center
-                    label.Visible = true
-                    label.Parent = CreateEspGui()
-                    label.ZIndex = 10
+        -- Пропускаем игроков
+        local char = part.Parent
+        if char and char:IsA("Model") and char:FindFirstChild("Humanoid") then
+            goto continue
+        end
+        if LocalPlayer.Character and part:IsDescendantOf(LocalPlayer.Character) then
+            goto continue
+        end
 
-                    local box = Instance.new("Frame")
-                    box.Size = UDim2.new(0, 60, 0, 60)
-                    box.BackgroundTransparency = 0.5
-                    box.BackgroundColor3 = Settings.BoxColor
-                    box.BorderSizePixel = 2
-                    box.BorderColor3 = Settings.BoxColor
-                    box.Visible = true
-                    box.Parent = CreateEspGui()
-                    box.ZIndex = 9
+        local price = GetItemPrice(part)
+        if price >= Settings.PriceThreshold then
+            count = count + 1
+            local key = part
 
-                    EspObjects[key] = {
-                        label = label,
-                        box = box,
-                        part = part,
-                        lastUpdate = tick()
-                    }
-                end
-                processed[key] = true
+            if not EspObjects[key] then
+                local label = Instance.new("TextLabel")
+                label.Size = UDim2.new(0, 200, 0, 30)
+                label.BackgroundTransparency = 1
+                label.Text = "💰 " .. tostring(price)
+                label.TextColor3 = Settings.TextColor
+                label.TextSize = Settings.FontSize
+                label.Font = Enum.Font.GothamBold
+                label.TextStrokeTransparency = 0.2
+                label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                label.TextXAlignment = Enum.TextXAlignment.Center
+                label.TextYAlignment = Enum.TextYAlignment.Center
+                label.Visible = true
+                label.Parent = CreateEspGui()
+                label.ZIndex = 10
+
+                local box = Instance.new("Frame")
+                box.Size = UDim2.new(0, 60, 0, 60)
+                box.BackgroundTransparency = 0.5
+                box.BackgroundColor3 = Settings.BoxColor
+                box.BorderSizePixel = 2
+                box.BorderColor3 = Settings.BoxColor
+                box.Visible = true
+                box.Parent = CreateEspGui()
+                box.ZIndex = 9
+
+                EspObjects[key] = { label = label, box = box, part = part }
             end
+            processed[key] = true
         end
         ::continue::
     end
 
-    -- Удаляем старые ESP
+    -- Удаляем старые
     for key, data in pairs(EspObjects) do
         if not processed[key] or not data.part or not data.part.Parent then
             if data.label then data.label:Destroy() end
@@ -457,53 +382,50 @@ local function UpdateEsp()
     end
 
     -- Обновляем позиции
-    local cameraPos = Camera.CFrame.Position
+    local camPos = Camera.CFrame.Position
     for _, data in pairs(EspObjects) do
         if data.part and data.part.Parent then
-            local position, visible = Camera:WorldToScreenPoint(data.part.Position)
-            if not visible then
+            local pos, vis = Camera:WorldToScreenPoint(data.part.Position)
+            if not vis then
                 data.label.Visible = false
                 data.box.Visible = false
-                goto continue2
+                goto next
             end
 
-            local distance = (cameraPos - data.part.Position).Magnitude
-
-            if distance > Settings.MaxRenderDistance then
+            local dist = (camPos - data.part.Position).Magnitude
+            if dist > Settings.MaxRenderDistance then
                 data.label.Visible = false
                 data.box.Visible = false
-                goto continue2
+                goto next
             end
 
-            -- Обновляем текст
             if Settings.ShowNames then
                 local price = GetItemPrice(data.part)
                 local text = "💰 " .. tostring(price)
                 if Settings.ShowDistance then
-                    text = text .. " [" .. math.floor(distance) .. "m]"
+                    text = text .. " [" .. math.floor(dist) .. "m]"
                 end
                 data.label.Text = text
-                data.label.Position = UDim2.new(0, position.X - 100, 0, position.Y - 45)
+                data.label.Position = UDim2.new(0, pos.X - 100, 0, pos.Y - 45)
                 data.label.Visible = true
             else
                 data.label.Visible = false
             end
 
-            -- Обновляем рамку
             if Settings.ShowBoxes then
-                local size = math.max(20, 50 / (distance / 30 + 1))
+                local size = math.max(20, 50 / (dist / 30 + 1))
                 data.box.Size = UDim2.new(0, size, 0, size)
-                data.box.Position = UDim2.new(0, position.X - size/2, 0, position.Y - size/2)
+                data.box.Position = UDim2.new(0, pos.X - size/2, 0, pos.Y - size/2)
                 data.box.Visible = true
             else
                 data.box.Visible = false
             end
         end
-        ::continue2::
+        ::next::
     end
 end
 
--- ===== ЗАПУСК =====
+-- ЗАПУСК
 local MenuGui, MenuFrame = CreateMenu()
 
 local function ToggleMenu()
@@ -511,9 +433,8 @@ local function ToggleMenu()
     MenuFrame.Visible = MenuOpen
 end
 
--- Обработка клавиш
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
     if input.KeyCode == Enum.KeyCode[Settings.Keybind] then
         ToggleMenu()
     end
@@ -525,7 +446,6 @@ Mouse.KeyDown:Connect(function(key)
     end
 end)
 
--- Запуск ESP с оптимизацией
 Connection = RunService.Heartbeat:Connect(function(delta)
     UpdateTimer = UpdateTimer + delta
     if UpdateTimer >= Settings.UpdateRate then
@@ -534,34 +454,4 @@ Connection = RunService.Heartbeat:Connect(function(delta)
     end
 end)
 
-print("[ESP] Оптимизированная версия запущена!")
-print("[ESP] Нажмите F5 для открытия меню")
-print("[ESP] ESP работает ТОЛЬКО на вещи, НЕ на игроков")
-
-if IsXeno and Xeno.Notify then
-    Xeno:Notify("[ESP] Запущен! (оптимизированная версия)", 3)
-end
-
--- Очистка
-LocalPlayer.OnTeleport:Connect(function()
-    if Connection then
-        Connection:Disconnect()
-        Connection = nil
-    end
-    if EspGui then
-        EspGui:Destroy()
-    end
-    if MenuGui then
-        MenuGui:Destroy()
-    end
-end)
-
---[[
-    ИСПРАВЛЕНИЯ:
-    1. Убрана зависимость от game:HttpGet (ошибка на строке 1)
-    2. Оптимизирован цикл обновления
-    3. Добавлена проверка на части игрока
-    4. Уменьшено потребление ресурсов
-    
-    ТЕПЕРЬ СКРИПТ ДОЛЖЕН РАБОТАТЬ БЕЗ ОШИБОК!
---]]
+print("[ESP] Запущен! Нажмите F5 для меню")
