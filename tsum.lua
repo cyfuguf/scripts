@@ -1,7 +1,7 @@
 --[[
     Название: Tsum ESP - Xeno Edition с меню
     Описание: ESP для дорогих вещей с графическим меню
-    Версия: 3.1 (исправлена ошибка Bind)
+    Версия: 3.2 (исправлена ошибка tonumber)
 --]]
 
 -- Проверка наличия Xeno
@@ -397,18 +397,20 @@ local function CreateLine()
     return line
 end
 
--- ПОИСК ЦЕНЫ (РАСШИРЕННАЯ ВЕРСИЯ)
+-- ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ ПОИСКА ЦЕНЫ =====
 local function GetItemPrice(part)
     -- 1. Проверка атрибутов
     local price = part:GetAttribute("Value") or part:GetAttribute("Price") or part:GetAttribute("Cost") or 0
-    if price > 0 then return price end
+    if type(price) == "number" and price > 0 then 
+        return price 
+    end
 
     -- 2. Проверка всех дочерних объектов
     for _, child in ipairs(part:GetChildren()) do
         if child:IsA("IntValue") or child:IsA("NumberValue") then
             local name = child.Name:lower()
             if name:find("price") or name:find("value") or name:find("cost") or name:find("money") then
-                if child.Value > 0 then
+                if type(child.Value) == "number" and child.Value > 0 then
                     return child.Value
                 end
             end
@@ -422,7 +424,7 @@ local function GetItemPrice(part)
             if child:IsA("IntValue") or child:IsA("NumberValue") then
                 local name = child.Name:lower()
                 if name:find("price") or name:find("value") or name:find("cost") or name:find("money") then
-                    if child.Value > 0 then
+                    if type(child.Value) == "number" and child.Value > 0 then
                         return child.Value
                     end
                 end
@@ -430,11 +432,17 @@ local function GetItemPrice(part)
         end
     end
 
-    -- 4. Проверка названия части
+    -- 4. Проверка названия части (С ИСПРАВЛЕННОЙ ЗАЩИТОЙ)
     local name = part.Name
-    local num = tonumber(name:match("[%d,]+"):gsub(",", ""))
-    if num and num > 0 then
-        return num
+    if type(name) == "string" then
+        -- Ищем числа в названии (с защитой от ошибок)
+        local num = name:match("%d+")
+        if num then
+            local parsed = tonumber(num)
+            if parsed and parsed > 0 then
+                return parsed
+            end
+        end
     end
 
     return 0
@@ -579,7 +587,7 @@ local function StartEsp()
     UpdateEsp()
 end
 
--- ===== ИСПРАВЛЕННАЯ ОБРАБОТКА КЛАВИШ =====
+-- Обработка клавиш
 local function ToggleMenu()
     MenuOpen = not MenuOpen
     MenuFrame.Visible = MenuOpen
@@ -590,7 +598,6 @@ local function ToggleMenu()
     end
 end
 
--- Используем стандартный UserInputService вместо Xeno:Bind
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode[Settings.Keybind] then
@@ -598,7 +605,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Дополнительно: обработка через Mouse для совместимости
 Mouse.KeyDown:Connect(function(key)
     if key == Settings.Keybind then
         ToggleMenu()
@@ -623,14 +629,11 @@ end)
 StartEsp()
 
 --[[
-    ИЗМЕНЕНИЯ:
-    1. Удалён Xeno:Bind() - заменён на стандартный UserInputService
-    2. Добавлен Mouse.KeyDown как запасной вариант
-    3. Добавлена проверка Xeno.Notify перед вызовом
-    4. Расширен поиск цены (добавлен Cost, Money)
-    5. Теперь работает без Xeno
+    ИСПРАВЛЕНИЯ:
+    1. Исправлена ошибка tonumber - теперь используется безопасный поиск чисел в названии
+    2. Добавлены проверки типов данных
+    3. Улучшена стабильность функции GetItemPrice
+    4. Добавлена защита от nil значений
 
-    УПРАВЛЕНИЕ:
-    - F5: Открыть/закрыть меню
-    - Перетаскивание: зажми заголовок меню
+    ТЕПЕРЬ СКРИПТ ДОЛЖЕН РАБОТАТЬ БЕЗ ОШИБОК!
 --]]
