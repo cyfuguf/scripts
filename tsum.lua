@@ -1,10 +1,8 @@
---[[
-    Tsum ESP - Рабочая версия
-    ESP для дорогих ВЕЩЕЙ
-    Нажми F5 для открытия меню
-]]
+-- ============================================
+-- TSUM ESP - РАБОЧАЯ ВЕРСИЯ
+-- НАЖМИ F5 ДЛЯ ОТКРЫТИЯ МЕНЮ
+-- ============================================
 
--- НАСТРОЙКИ
 local Settings = {
     Enabled = true,
     PriceThreshold = 500,
@@ -20,7 +18,6 @@ local Settings = {
     MaxItems = 30,
 }
 
--- Служебные переменные
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -33,8 +30,10 @@ local Connection = nil
 local MenuOpen = false
 local UpdateTimer = 0
 local EspGui = nil
+local MenuGui = nil
+local MenuFrame = nil
 
--- СОЗДАНИЕ МЕНЮ
+-- ===== СОЗДАНИЕ МЕНЮ =====
 local function CreateMenu()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "TsumMenu"
@@ -277,7 +276,7 @@ local function CreateMenu()
     return screenGui, mainFrame
 end
 
--- СОЗДАНИЕ ESP GUI
+-- ===== СОЗДАНИЕ ESP GUI =====
 local function CreateEspGui()
     if EspGui then return EspGui end
     local screenGui = Instance.new("ScreenGui")
@@ -289,7 +288,7 @@ local function CreateEspGui()
     return screenGui
 end
 
--- ПОИСК ЦЕНЫ
+-- ===== ПОИСК ЦЕНЫ =====
 local function GetItemPrice(part)
     local price = part:GetAttribute("Value") or part:GetAttribute("Price") or part:GetAttribute("Cost") or 0
     if type(price) == "number" and price > 0 then return price end
@@ -307,7 +306,7 @@ local function GetItemPrice(part)
     return 0
 end
 
--- ОСНОВНОЙ ЦИКЛ
+-- ===== ОСНОВНОЙ ЦИКЛ =====
 local function UpdateEsp()
     if not Settings.Enabled then
         for _, data in pairs(EspObjects) do
@@ -425,8 +424,8 @@ local function UpdateEsp()
     end
 end
 
--- ЗАПУСК
-local MenuGui, MenuFrame = CreateMenu()
+-- ===== ЗАПУСК =====
+MenuGui, MenuFrame = CreateMenu()
 
 local function ToggleMenu()
     MenuOpen = not MenuOpen
@@ -454,4 +453,6 @@ Connection = RunService.Heartbeat:Connect(function(delta)
     end
 end)
 
-print("[ESP] Запущен! Нажмите F5 для меню")
+print("✅ TSUM ESP ЗАПУЩЕН!")
+print("📌 Нажми F5 для открытия меню")
+print("🎯 ESP работает ТОЛЬКО на ВЕЩИ, НЕ на игроков!")
