@@ -1,12 +1,8 @@
 --[[
     Название: Tsum ESP - Xeno Edition с меню
     Описание: ESP для дорогих вещей с графическим меню
-    Версия: 3.0
-    Автор: GitHub Copilot
+    Версия: 3.1 (исправлена ошибка Bind)
 --]]
-
--- Загрузка с GitHub:
--- loadstring(game:HttpGet("https://raw.githubusercontent.com/yourusername/tsum-esp/main/main.lua"))()
 
 -- Проверка наличия Xeno
 local Xeno = syn and syn.xeno or (getgenv and getgenv().Xeno)
@@ -50,8 +46,7 @@ local function CreateMenu()
     if IsXeno then
         screenGui.DisplayOrder = 999
     end
-    
-    -- Главное меню
+
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
     mainFrame.Size = UDim2.new(0, 350, 0, 450)
@@ -61,13 +56,11 @@ local function CreateMenu()
     mainFrame.BorderSizePixel = 0
     mainFrame.Visible = false
     mainFrame.Parent = screenGui
-    
-    -- Скругление углов
+
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = mainFrame
-    
-    -- Заголовок
+
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, 0, 0, 40)
     title.Position = UDim2.new(0, 0, 0, 0)
@@ -78,8 +71,7 @@ local function CreateMenu()
     title.TextSize = 22
     title.Font = Enum.Font.GothamBold
     title.Parent = mainFrame
-    
-    -- Кнопка закрытия
+
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 30, 0, 30)
     closeBtn.Position = UDim2.new(1, -35, 0, 5)
@@ -89,19 +81,18 @@ local function CreateMenu()
     closeBtn.TextSize = 18
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.Parent = mainFrame
-    
+
     local closeCorner = Instance.new("UICorner")
     closeCorner.CornerRadius = UDim.new(0, 5)
     closeCorner.Parent = closeBtn
-    
-    -- Создание ползунка
+
     local function CreateSlider(parent, name, min, max, default, callback)
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(0.9, 0, 0, 40)
         frame.Position = UDim2.new(0.05, 0, 0, 0)
         frame.BackgroundTransparency = 1
         frame.Parent = parent
-        
+
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(0.5, 0, 1, 0)
         label.Position = UDim2.new(0, 0, 0, 0)
@@ -112,30 +103,30 @@ local function CreateMenu()
         label.Font = Enum.Font.Gotham
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = frame
-        
+
         local slider = Instance.new("Frame")
         slider.Size = UDim2.new(0.4, 0, 0, 6)
         slider.Position = UDim2.new(0.5, 0, 0.5, -3)
         slider.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
         slider.BorderSizePixel = 0
         slider.Parent = frame
-        
+
         local sliderCorner = Instance.new("UICorner")
         sliderCorner.CornerRadius = UDim.new(0, 3)
         sliderCorner.Parent = slider
-        
+
         local fill = Instance.new("Frame")
         fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
         fill.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
         fill.BorderSizePixel = 0
         fill.Parent = slider
-        
+
         local fillCorner = Instance.new("UICorner")
         fillCorner.CornerRadius = UDim.new(0, 3)
         fillCorner.Parent = fill
-        
+
         local dragging = false
-        
+
         local function updateSlider(input)
             local pos = input.Position.X / slider.AbsoluteSize.X
             pos = math.clamp(pos, 0, 1)
@@ -145,37 +136,36 @@ local function CreateMenu()
             label.Text = name .. ": " .. tostring(value)
             callback(value)
         end
-        
+
         slider.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
                 updateSlider(input)
             end
         end)
-        
+
         slider.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
         end)
-        
+
         slider.InputChanged:Connect(function(input)
             if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                 updateSlider(input)
             end
         end)
-        
+
         return frame
     end
-    
-    -- Создание переключателя
+
     local function CreateToggle(parent, name, default, callback)
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(0.9, 0, 0, 35)
         frame.Position = UDim2.new(0.05, 0, 0, 0)
         frame.BackgroundTransparency = 1
         frame.Parent = parent
-        
+
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(0.7, 0, 1, 0)
         label.Position = UDim2.new(0, 0, 0, 0)
@@ -186,7 +176,7 @@ local function CreateMenu()
         label.Font = Enum.Font.Gotham
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = frame
-        
+
         local toggle = Instance.new("TextButton")
         toggle.Size = UDim2.new(0, 50, 0, 25)
         toggle.Position = UDim2.new(0.8, 0, 0.5, -12.5)
@@ -197,24 +187,23 @@ local function CreateMenu()
         toggle.Font = Enum.Font.GothamBold
         toggle.BorderSizePixel = 0
         toggle.Parent = frame
-        
+
         local toggleCorner = Instance.new("UICorner")
         toggleCorner.CornerRadius = UDim.new(0, 5)
         toggleCorner.Parent = toggle
-        
+
         local state = default
-        
+
         toggle.MouseButton1Click:Connect(function()
             state = not state
             toggle.BackgroundColor3 = state and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(60, 60, 70)
             toggle.Text = state and "ON" or "OFF"
             callback(state)
         end)
-        
+
         return frame
     end
-    
-    -- Создание кнопки
+
     local function CreateButton(parent, name, callback)
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(0.4, 0, 0, 35)
@@ -226,23 +215,22 @@ local function CreateMenu()
         btn.Font = Enum.Font.GothamBold
         btn.BorderSizePixel = 0
         btn.Parent = parent
-        
+
         local btnCorner = Instance.new("UICorner")
         btnCorner.CornerRadius = UDim.new(0, 5)
         btnCorner.Parent = btn
-        
+
         btn.MouseButton1Click:Connect(callback)
-        
+
         return btn
     end
-    
-    -- Контейнер для элементов
+
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, 0, 1, -40)
     container.Position = UDim2.new(0, 0, 0, 40)
     container.BackgroundTransparency = 1
     container.Parent = mainFrame
-    
+
     local scroll = Instance.new("ScrollingFrame")
     scroll.Size = UDim2.new(1, 0, 1, 0)
     scroll.Position = UDim2.new(0, 0, 0, 0)
@@ -251,14 +239,13 @@ local function CreateMenu()
     scroll.ScrollBarThickness = 5
     scroll.CanvasSize = UDim2.new(0, 0, 0, 450)
     scroll.Parent = container
-    
+
     local layout = Instance.new("UIListLayout")
     layout.Padding = UDim.new(0, 5)
     layout.Parent = scroll
-    
+
     local y = 0
-    
-    -- Элементы меню
+
     local function addElement(element)
         element.Position = UDim2.new(0, 0, 0, y)
         y = y + 40
@@ -266,45 +253,37 @@ local function CreateMenu()
         scroll.CanvasSize = UDim2.new(0, 0, 0, y + 10)
         return element
     end
-    
-    -- Включение/выключение ESP
+
     addElement(CreateToggle(scroll, "ESP Enabled", Settings.Enabled, function(val)
         Settings.Enabled = val
         print("[ESP] " .. (val and "Включён" or "Выключен"))
     end))
-    
-    -- Порог цены
+
     addElement(CreateSlider(scroll, "Price Threshold", 100, 5000, Settings.PriceThreshold, function(val)
         Settings.PriceThreshold = val
         print("[ESP] Порог цены: " .. val)
     end))
-    
-    -- Показывать рамки
+
     addElement(CreateToggle(scroll, "Show Boxes", Settings.ShowBoxes, function(val)
         Settings.ShowBoxes = val
     end))
-    
-    -- Показывать линии
+
     addElement(CreateToggle(scroll, "Show Lines", Settings.ShowLines, function(val)
         Settings.ShowLines = val
     end))
-    
-    -- Показывать названия
+
     addElement(CreateToggle(scroll, "Show Names", Settings.ShowNames, function(val)
         Settings.ShowNames = val
     end))
-    
-    -- Показывать дистанцию
+
     addElement(CreateToggle(scroll, "Show Distance", Settings.ShowDistance, function(val)
         Settings.ShowDistance = val
     end))
-    
-    -- Максимальная дистанция
+
     addElement(CreateSlider(scroll, "Max Distance", 100, 1000, Settings.MaxRenderDistance, function(val)
         Settings.MaxRenderDistance = val
     end))
-    
-    -- Кнопка сброса
+
     local resetBtn = CreateButton(scroll, "Reset Settings", function()
         Settings.PriceThreshold = 500
         Settings.MaxRenderDistance = 500
@@ -317,18 +296,16 @@ local function CreateMenu()
     resetBtn.Size = UDim2.new(0.4, 0, 0, 35)
     resetBtn.Position = UDim2.new(0.55, 0, 0, 0)
     resetBtn.Parent = scroll
-    
-    -- Закрытие меню
+
     closeBtn.MouseButton1Click:Connect(function()
         mainFrame.Visible = false
         MenuOpen = false
     end)
-    
-    -- Перетаскивание окна
+
     local dragging = false
     local dragStart
     local startPos
-    
+
     title.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
@@ -336,13 +313,13 @@ local function CreateMenu()
             startPos = mainFrame.Position
         end
     end)
-    
+
     title.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
-    
+
     title.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
@@ -354,7 +331,7 @@ local function CreateMenu()
             )
         end
     end)
-    
+
     return screenGui, mainFrame
 end
 
@@ -362,10 +339,9 @@ end
 local EspGui = nil
 local MenuGui, MenuFrame = CreateMenu()
 
--- Создание ESP GUI
 local function CreateEspGui()
     if EspGui then return EspGui end
-    
+
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "TsumESP"
     screenGui.Parent = LocalPlayer.PlayerGui
@@ -378,7 +354,6 @@ local function CreateEspGui()
     return screenGui
 end
 
--- Функции создания элементов ESP
 local function CreateTextLabel(text)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0, 250, 0, 35)
@@ -422,28 +397,31 @@ local function CreateLine()
     return line
 end
 
--- ПОИСК ЦЕНЫ
+-- ПОИСК ЦЕНЫ (РАСШИРЕННАЯ ВЕРСИЯ)
 local function GetItemPrice(part)
-    local price = part:GetAttribute("Value") or part:GetAttribute("Price") or 0
+    -- 1. Проверка атрибутов
+    local price = part:GetAttribute("Value") or part:GetAttribute("Price") or part:GetAttribute("Cost") or 0
     if price > 0 then return price end
-    
+
+    -- 2. Проверка всех дочерних объектов
     for _, child in ipairs(part:GetChildren()) do
         if child:IsA("IntValue") or child:IsA("NumberValue") then
             local name = child.Name:lower()
-            if name:find("price") or name:find("value") or name:find("cost") then
+            if name:find("price") or name:find("value") or name:find("cost") or name:find("money") then
                 if child.Value > 0 then
                     return child.Value
                 end
             end
         end
     end
-    
+
+    -- 3. Проверка родителя
     local parent = part.Parent
     if parent then
         for _, child in ipairs(parent:GetChildren()) do
             if child:IsA("IntValue") or child:IsA("NumberValue") then
                 local name = child.Name:lower()
-                if name:find("price") or name:find("value") or name:find("cost") then
+                if name:find("price") or name:find("value") or name:find("cost") or name:find("money") then
                     if child.Value > 0 then
                         return child.Value
                     end
@@ -451,24 +429,23 @@ local function GetItemPrice(part)
             end
         end
     end
-    
+
+    -- 4. Проверка названия части
     local name = part.Name
     local num = tonumber(name:match("[%d,]+"):gsub(",", ""))
     if num and num > 0 then
         return num
     end
-    
+
     return 0
 end
 
--- Проверка ценности
 local function IsValuableItem(part)
     if not part or not part.Parent then return false end
     local price = GetItemPrice(part)
     return price >= Settings.PriceThreshold
 end
 
--- Обновление позиции ESP
 local function UpdateEspPosition(part, label, box, line)
     if not part or not part.Parent then
         label.Visible = false
@@ -476,7 +453,7 @@ local function UpdateEspPosition(part, label, box, line)
         if line then line.Visible = false end
         return
     end
-    
+
     local position, visible = Camera:WorldToScreenPoint(part.Position)
     if not visible then
         label.Visible = false
@@ -484,17 +461,16 @@ local function UpdateEspPosition(part, label, box, line)
         if line then line.Visible = false end
         return
     end
-    
+
     local distance = (Camera.CFrame.Position - part.Position).Magnitude
-    
+
     if distance > Settings.MaxRenderDistance then
         label.Visible = false
         if box then box.Visible = false end
         if line then line.Visible = false end
         return
     end
-    
-    -- Обновляем текст
+
     if Settings.ShowNames then
         local price = GetItemPrice(part)
         local text = string.format("💰 %s", tostring(price))
@@ -507,8 +483,7 @@ local function UpdateEspPosition(part, label, box, line)
     else
         label.Visible = false
     end
-    
-    -- Обновляем рамку
+
     if Settings.ShowBoxes and box then
         local size = math.max(30, 80 / (distance / 50 + 1))
         box.Size = UDim2.new(0, size, 0, size)
@@ -517,13 +492,12 @@ local function UpdateEspPosition(part, label, box, line)
     elseif box then
         box.Visible = false
     end
-    
-    -- Обновляем линию
+
     if Settings.ShowLines and line then
         local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
         local lineLength = (position - screenCenter).Magnitude
         local angle = math.atan2(position.Y - screenCenter.Y, position.X - screenCenter.X)
-        
+
         line.Size = UDim2.new(0, 2, 0, math.min(lineLength, 200))
         line.Position = UDim2.new(0, screenCenter.X, 0, screenCenter.Y)
         line.Rotation = math.deg(angle)
@@ -533,7 +507,6 @@ local function UpdateEspPosition(part, label, box, line)
     end
 end
 
--- ОСНОВНОЙ ЦИКЛ
 local function UpdateEsp()
     if not Settings.Enabled then
         for _, data in pairs(EspObjects) do
@@ -543,16 +516,16 @@ local function UpdateEsp()
         end
         return
     end
-    
+
     local parts = workspace:GetDescendants()
     local processed = {}
-    
+
     for _, part in ipairs(parts) do
         if part:IsA("BasePart") and part.Parent then
             local price = GetItemPrice(part)
             if price >= Settings.PriceThreshold then
                 local key = part
-                
+
                 if not EspObjects[key] then
                     local label = CreateTextLabel("💰 " .. tostring(price))
                     local box = CreateBox()
@@ -568,8 +541,7 @@ local function UpdateEsp()
             end
         end
     end
-    
-    -- Удаляем старые ESP
+
     for key, data in pairs(EspObjects) do
         if not processed[key] or not data.part or not data.part.Parent then
             if data.label then data.label:Destroy() end
@@ -578,8 +550,7 @@ local function UpdateEsp()
             EspObjects[key] = nil
         end
     end
-    
-    -- Обновляем позиции
+
     for _, data in pairs(EspObjects) do
         if data.part and data.part.Parent then
             UpdateEspPosition(data.part, data.label, data.box, data.line)
@@ -587,29 +558,28 @@ local function UpdateEsp()
     end
 end
 
--- Запуск ESP
 local function StartEsp()
     if Connection then
         Connection:Disconnect()
         Connection = nil
     end
-    
+
     Connection = RunService.Heartbeat:Connect(function()
         UpdateEsp()
     end)
-    
+
     print("[ESP] Запущен!")
     print("[ESP] Нажмите " .. Settings.Keybind .. " для открытия меню")
-    
-    if IsXeno then
+
+    if IsXeno and Xeno.Notify then
         Xeno:Notify("[ESP] Запущен! Нажмите " .. Settings.Keybind .. " для меню", 3)
     end
-    
+
     task.wait(1)
     UpdateEsp()
 end
 
--- Обработчик клавиш
+-- ===== ИСПРАВЛЕННАЯ ОБРАБОТКА КЛАВИШ =====
 local function ToggleMenu()
     MenuOpen = not MenuOpen
     MenuFrame.Visible = MenuOpen
@@ -620,18 +590,20 @@ local function ToggleMenu()
     end
 end
 
-if IsXeno then
-    Xeno:Bind(Settings.Keybind, function()
+-- Используем стандартный UserInputService вместо Xeno:Bind
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode[Settings.Keybind] then
         ToggleMenu()
-    end)
-else
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode[Settings.Keybind] then
-            ToggleMenu()
-        end
-    end)
-end
+    end
+end)
+
+-- Дополнительно: обработка через Mouse для совместимости
+Mouse.KeyDown:Connect(function(key)
+    if key == Settings.Keybind then
+        ToggleMenu()
+    end
+end)
 
 -- Очистка
 game:GetService("Players").LocalPlayer.OnTeleport:Connect(function()
@@ -651,22 +623,14 @@ end)
 StartEsp()
 
 --[[
-    ИНСТРУКЦИЯ:
-    
-    1. Загрузи скрипт в Xeno
-    2. Нажми F5 для открытия меню
-    3. Настрой параметры:
-       - Price Threshold: порог цены
-       - Show Boxes: показывать рамки
-       - Show Lines: показывать линии
-       - Show Names: показывать названия
-       - Show Distance: показывать дистанцию
-       - Max Distance: максимальная дистанция
-    
+    ИЗМЕНЕНИЯ:
+    1. Удалён Xeno:Bind() - заменён на стандартный UserInputService
+    2. Добавлен Mouse.KeyDown как запасной вариант
+    3. Добавлена проверка Xeno.Notify перед вызовом
+    4. Расширен поиск цены (добавлен Cost, Money)
+    5. Теперь работает без Xeno
+
     УПРАВЛЕНИЕ:
     - F5: Открыть/закрыть меню
     - Перетаскивание: зажми заголовок меню
-    
-    НАСТРОЙКА ПОД СВОЮ ИГРУ:
-    Если ESP не работает, измени функцию GetItemPrice()
 --]]
