@@ -1,7 +1,5 @@
--- ============================================
 -- TSUM ESP - РАБОЧАЯ ВЕРСИЯ
--- НАЖМИ F5 ДЛЯ ОТКРЫТИЯ МЕНЮ
--- ============================================
+-- НАЖМИ F5 ДЛЯ МЕНЮ
 
 local Settings = {
     Enabled = true,
@@ -14,8 +12,6 @@ local Settings = {
     ShowBoxes = true,
     ShowNames = true,
     Keybind = "F5",
-    UpdateRate = 0.2,
-    MaxItems = 30,
 }
 
 local Players = game:GetService("Players")
@@ -28,12 +24,9 @@ local Mouse = LocalPlayer:GetMouse()
 local EspObjects = {}
 local Connection = nil
 local MenuOpen = false
-local UpdateTimer = 0
 local EspGui = nil
-local MenuGui = nil
-local MenuFrame = nil
 
--- ===== СОЗДАНИЕ МЕНЮ =====
+-- МЕНЮ
 local function CreateMenu()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "TsumMenu"
@@ -42,56 +35,45 @@ local function CreateMenu()
     screenGui.IgnoreGuiInset = true
 
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 350, 0, 380)
-    mainFrame.Position = UDim2.new(0.5, -175, 0.5, -190)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-    mainFrame.BackgroundTransparency = 0.05
-    mainFrame.BorderSizePixel = 1
-    mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)
+    mainFrame.Size = UDim2.new(0, 320, 0, 350)
+    mainFrame.Position = UDim2.new(0.5, -160, 0.5, -175)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    mainFrame.BorderSizePixel = 0
     mainFrame.Visible = false
     mainFrame.Parent = screenGui
-    mainFrame.ClipsDescendants = true
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = mainFrame
 
     -- Заголовок
-    local title = Instance.new("Frame")
-    title.Size = UDim2.new(1, 0, 0, 40)
-    title.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-    title.BorderSizePixel = 0
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 35)
+    title.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
+    title.Text = "✦ TSUM ESP ✦"
+    title.TextColor3 = Color3.fromRGB(255, 215, 0)
+    title.TextSize = 18
+    title.Font = Enum.Font.GothamBold
     title.Parent = mainFrame
 
     local titleCorner = Instance.new("UICorner")
-    titleCorner.CornerRadius = UDim.new(0, 10)
+    titleCorner.CornerRadius = UDim.new(0, 8)
     titleCorner.Parent = title
-
-    local titleText = Instance.new("TextLabel")
-    titleText.Size = UDim2.new(1, -40, 1, 0)
-    titleText.Position = UDim2.new(0, 10, 0, 0)
-    titleText.BackgroundTransparency = 1
-    titleText.Text = "✦ TSUM ESP ✦"
-    titleText.TextColor3 = Color3.fromRGB(255, 215, 0)
-    titleText.TextSize = 18
-    titleText.Font = Enum.Font.GothamBold
-    titleText.TextXAlignment = Enum.TextXAlignment.Left
-    titleText.Parent = title
 
     -- Кнопка закрытия
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 28, 0, 28)
-    closeBtn.Position = UDim2.new(1, -34, 0, 6)
+    closeBtn.Size = UDim2.new(0, 25, 0, 25)
+    closeBtn.Position = UDim2.new(1, -30, 0, 5)
     closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeBtn.TextSize = 16
+    closeBtn.TextSize = 14
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.BorderSizePixel = 0
     closeBtn.Parent = mainFrame
 
     local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 5)
+    closeCorner.CornerRadius = UDim.new(0, 4)
     closeCorner.Parent = closeBtn
 
     closeBtn.MouseButton1Click:Connect(function()
@@ -101,8 +83,8 @@ local function CreateMenu()
 
     -- Контейнер
     local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, -20, 1, -50)
-    container.Position = UDim2.new(0, 10, 0, 45)
+    container.Size = UDim2.new(1, -20, 1, -45)
+    container.Position = UDim2.new(0, 10, 0, 40)
     container.BackgroundTransparency = 1
     container.Parent = mainFrame
 
@@ -111,18 +93,17 @@ local function CreateMenu()
     scroll.BackgroundTransparency = 1
     scroll.BorderSizePixel = 0
     scroll.ScrollBarThickness = 3
-    scroll.CanvasSize = UDim2.new(0, 0, 0, 350)
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 320)
     scroll.Parent = container
 
     local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 6)
+    layout.Padding = UDim.new(0, 5)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Parent = scroll
 
-    -- Создание элементов меню
     local function CreateToggle(parent, name, default, callback)
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, 0, 0, 32)
+        frame.Size = UDim2.new(1, 0, 0, 30)
         frame.BackgroundTransparency = 1
         frame.Parent = parent
 
@@ -131,24 +112,24 @@ local function CreateMenu()
         label.BackgroundTransparency = 1
         label.Text = name
         label.TextColor3 = Color3.fromRGB(220, 220, 230)
-        label.TextSize = 14
+        label.TextSize = 13
         label.Font = Enum.Font.Gotham
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = frame
 
         local toggle = Instance.new("TextButton")
-        toggle.Size = UDim2.new(0, 45, 0, 24)
-        toggle.Position = UDim2.new(1, -45, 0.5, -12)
+        toggle.Size = UDim2.new(0, 40, 0, 22)
+        toggle.Position = UDim2.new(1, -40, 0.5, -11)
         toggle.BackgroundColor3 = default and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(50, 50, 65)
         toggle.Text = default and "ON" or "OFF"
         toggle.TextColor3 = default and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(200, 200, 200)
-        toggle.TextSize = 12
+        toggle.TextSize = 11
         toggle.Font = Enum.Font.GothamBold
         toggle.BorderSizePixel = 0
         toggle.Parent = frame
 
         local toggleCorner = Instance.new("UICorner")
-        toggleCorner.CornerRadius = UDim.new(0, 5)
+        toggleCorner.CornerRadius = UDim.new(0, 4)
         toggleCorner.Parent = toggle
 
         local state = default
@@ -164,40 +145,40 @@ local function CreateMenu()
 
     local function CreateSlider(parent, name, min, max, default, callback)
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, 0, 0, 45)
+        frame.Size = UDim2.new(1, 0, 0, 40)
         frame.BackgroundTransparency = 1
         frame.Parent = parent
 
         local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(0.6, 0, 0, 18)
+        label.Size = UDim2.new(0.6, 0, 0, 16)
         label.BackgroundTransparency = 1
         label.Text = name
         label.TextColor3 = Color3.fromRGB(220, 220, 230)
-        label.TextSize = 14
+        label.TextSize = 13
         label.Font = Enum.Font.Gotham
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = frame
 
         local valueDisplay = Instance.new("TextLabel")
-        valueDisplay.Size = UDim2.new(0.3, 0, 0, 18)
+        valueDisplay.Size = UDim2.new(0.3, 0, 0, 16)
         valueDisplay.Position = UDim2.new(0.7, 0, 0, 0)
         valueDisplay.BackgroundTransparency = 1
         valueDisplay.Text = tostring(default)
         valueDisplay.TextColor3 = Color3.fromRGB(255, 215, 0)
-        valueDisplay.TextSize = 14
+        valueDisplay.TextSize = 13
         valueDisplay.Font = Enum.Font.GothamBold
         valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
         valueDisplay.Parent = frame
 
         local slider = Instance.new("Frame")
-        slider.Size = UDim2.new(1, 0, 0, 6)
-        slider.Position = UDim2.new(0, 0, 0, 24)
+        slider.Size = UDim2.new(1, 0, 0, 5)
+        slider.Position = UDim2.new(0, 0, 0, 22)
         slider.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
         slider.BorderSizePixel = 0
         slider.Parent = frame
 
         local sliderCorner = Instance.new("UICorner")
-        sliderCorner.CornerRadius = UDim.new(0, 3)
+        sliderCorner.CornerRadius = UDim.new(0, 2)
         sliderCorner.Parent = slider
 
         local fill = Instance.new("Frame")
@@ -207,7 +188,7 @@ local function CreateMenu()
         fill.Parent = slider
 
         local fillCorner = Instance.new("UICorner")
-        fillCorner.CornerRadius = UDim.new(0, 3)
+        fillCorner.CornerRadius = UDim.new(0, 2)
         fillCorner.Parent = fill
 
         local dragging = false
@@ -240,13 +221,12 @@ local function CreateMenu()
         return frame
     end
 
-    -- Добавляем элементы
     CreateToggle(scroll, "ESP Enabled", Settings.Enabled, function(v) Settings.Enabled = v end)
-    CreateSlider(scroll, "Price Threshold", 50, 5000, Settings.PriceThreshold, function(v) Settings.PriceThreshold = v end)
-    CreateToggle(scroll, "Show Boxes", Settings.ShowBoxes, function(v) Settings.ShowBoxes = v end)
-    CreateToggle(scroll, "Show Names", Settings.ShowNames, function(v) Settings.ShowNames = v end)
-    CreateToggle(scroll, "Show Distance", Settings.ShowDistance, function(v) Settings.ShowDistance = v end)
-    CreateSlider(scroll, "Max Distance", 50, 500, Settings.MaxRenderDistance, function(v) Settings.MaxRenderDistance = v end)
+    CreateSlider(scroll, "Price", 50, 5000, Settings.PriceThreshold, function(v) Settings.PriceThreshold = v end)
+    CreateToggle(scroll, "Boxes", Settings.ShowBoxes, function(v) Settings.ShowBoxes = v end)
+    CreateToggle(scroll, "Names", Settings.ShowNames, function(v) Settings.ShowNames = v end)
+    CreateToggle(scroll, "Distance", Settings.ShowDistance, function(v) Settings.ShowDistance = v end)
+    CreateSlider(scroll, "Max Dist", 50, 500, Settings.MaxRenderDistance, function(v) Settings.MaxRenderDistance = v end)
 
     -- Перетаскивание
     local dragging = false
@@ -276,7 +256,7 @@ local function CreateMenu()
     return screenGui, mainFrame
 end
 
--- ===== СОЗДАНИЕ ESP GUI =====
+-- СОЗДАНИЕ ESP
 local function CreateEspGui()
     if EspGui then return EspGui end
     local screenGui = Instance.new("ScreenGui")
@@ -288,7 +268,7 @@ local function CreateEspGui()
     return screenGui
 end
 
--- ===== ПОИСК ЦЕНЫ =====
+-- ПОИСК ЦЕНЫ
 local function GetItemPrice(part)
     local price = part:GetAttribute("Value") or part:GetAttribute("Price") or part:GetAttribute("Cost") or 0
     if type(price) == "number" and price > 0 then return price end
@@ -306,7 +286,7 @@ local function GetItemPrice(part)
     return 0
 end
 
--- ===== ОСНОВНОЙ ЦИКЛ =====
+-- ОСНОВНОЙ ЦИКЛ
 local function UpdateEsp()
     if not Settings.Enabled then
         for _, data in pairs(EspObjects) do
@@ -321,10 +301,9 @@ local function UpdateEsp()
     local count = 0
 
     for _, part in ipairs(parts) do
-        if count >= Settings.MaxItems then break end
+        if count >= 30 then break end
         if not part:IsA("BasePart") or not part.Parent then goto continue end
 
-        -- Пропускаем игроков
         local char = part.Parent
         if char and char:IsA("Model") and char:FindFirstChild("Humanoid") then
             goto continue
@@ -340,7 +319,7 @@ local function UpdateEsp()
 
             if not EspObjects[key] then
                 local label = Instance.new("TextLabel")
-                label.Size = UDim2.new(0, 200, 0, 30)
+                label.Size = UDim2.new(0, 180, 0, 28)
                 label.BackgroundTransparency = 1
                 label.Text = "💰 " .. tostring(price)
                 label.TextColor3 = Settings.TextColor
@@ -355,7 +334,7 @@ local function UpdateEsp()
                 label.ZIndex = 10
 
                 local box = Instance.new("Frame")
-                box.Size = UDim2.new(0, 60, 0, 60)
+                box.Size = UDim2.new(0, 50, 0, 50)
                 box.BackgroundTransparency = 0.5
                 box.BackgroundColor3 = Settings.BoxColor
                 box.BorderSizePixel = 2
@@ -371,7 +350,6 @@ local function UpdateEsp()
         ::continue::
     end
 
-    -- Удаляем старые
     for key, data in pairs(EspObjects) do
         if not processed[key] or not data.part or not data.part.Parent then
             if data.label then data.label:Destroy() end
@@ -380,7 +358,6 @@ local function UpdateEsp()
         end
     end
 
-    -- Обновляем позиции
     local camPos = Camera.CFrame.Position
     for _, data in pairs(EspObjects) do
         if data.part and data.part.Parent then
@@ -405,14 +382,14 @@ local function UpdateEsp()
                     text = text .. " [" .. math.floor(dist) .. "m]"
                 end
                 data.label.Text = text
-                data.label.Position = UDim2.new(0, pos.X - 100, 0, pos.Y - 45)
+                data.label.Position = UDim2.new(0, pos.X - 90, 0, pos.Y - 40)
                 data.label.Visible = true
             else
                 data.label.Visible = false
             end
 
             if Settings.ShowBoxes then
-                local size = math.max(20, 50 / (dist / 30 + 1))
+                local size = math.max(20, 45 / (dist / 30 + 1))
                 data.box.Size = UDim2.new(0, size, 0, size)
                 data.box.Position = UDim2.new(0, pos.X - size/2, 0, pos.Y - size/2)
                 data.box.Visible = true
@@ -424,8 +401,8 @@ local function UpdateEsp()
     end
 end
 
--- ===== ЗАПУСК =====
-MenuGui, MenuFrame = CreateMenu()
+-- ЗАПУСК
+local MenuGui, MenuFrame = CreateMenu()
 
 local function ToggleMenu()
     MenuOpen = not MenuOpen
@@ -445,14 +422,8 @@ Mouse.KeyDown:Connect(function(key)
     end
 end)
 
-Connection = RunService.Heartbeat:Connect(function(delta)
-    UpdateTimer = UpdateTimer + delta
-    if UpdateTimer >= Settings.UpdateRate then
-        UpdateTimer = 0
-        UpdateEsp()
-    end
+Connection = RunService.Heartbeat:Connect(function()
+    UpdateEsp()
 end)
 
-print("✅ TSUM ESP ЗАПУЩЕН!")
-print("📌 Нажми F5 для открытия меню")
-print("🎯 ESP работает ТОЛЬКО на ВЕЩИ, НЕ на игроков!")
+print("✅ TSUM ESP ЗАПУЩЕН! Нажми F5")
